@@ -2,6 +2,8 @@
 "use client"// Enable client-side rendering
 import Todo from "@/components/Todo";
 import {useState} from 'react';
+import { ToastContainer, toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css'
 
 
 
@@ -22,19 +24,37 @@ export default function Home() {
         
 
       }
+/**
+ * Handles the form submission event.
+ * 'async' allows us to perform network requests (like database saves) without freezing the UI.
+ */
+      const onSubmitHandler = async (e) =>{
+        // Prevents the browser from reloading the page, which is the default behavior of forms
+        e.preventDefault();
+        try {
+          //api call to save data to database will go here
+
+
+          toast.success('Todo added successfully');//show success message
+        } catch (error) {
+          toast.error('Error adding todo');//show error message
+        }
+
+      }
 
 
   return (
     <>
+    <ToastContainer theme="dark"/>
       {/* 1. Submission Form Section */}
-      <form className="flex items-start flex-col gap-2 w-[80%] max-w-150 mt-24 px-2 mx-auto">
-        <input 
+      <form onSubmit={onSubmitHandler} className="flex items-start flex-col gap-2 w-[80%] max-w-150 mt-24 px-2 mx-auto">
+        <input value={formData.title} onChange={onChangeHandler}
           type="text" 
           name="title" 
           placeholder="Enter Title"
           className="px-3 py-2 border-2 w-full"
         />
-        <textarea 
+        <textarea value={formData.description} onChange={onChangeHandler}//Bind textarea value to formData.description
           name="description" 
           placeholder="Enter Description"
           className="px-3 py-2 border-2 w-full"
