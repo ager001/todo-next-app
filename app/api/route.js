@@ -11,10 +11,14 @@ import { NextResponse } from 'next/server'
 export async function GET(request) {
     // Connect to database before fetching
     await ConnectDB();
+
+    const todos = await TodoModel.find({});//Fetch all todos from the database
+
+
     
     // You could also return all todos here using: const todos = await TodoModel.find({});
     return NextResponse.json({
-        msg: 'Hello from API route'
+        todos: todos
     })
 }
 
@@ -41,4 +45,37 @@ export async function POST(request) {
     return NextResponse.json({
         msg: 'Todo created successfully'
     })
+}
+
+export async function DELETE(request) {
+    // 1. Ensure the database connection is active
+    await ConnectDB();
+    
+    // 2. Extract the mongoId from the request URL
+    const mongoId = await request.nextUrl.searchParams.get('mongoId');
+
+    // 3. Delete the todo item from MongoDB using the TodoModel
+    await TodoModel.findByIdAndDelete(mongoId);
+
+    // 4. Send a success message back to the frontend
+    return NextResponse.json({
+        msg: 'Todo deleted successfully'
+    })
+}
+export async function PUT(request){
+    //1. Ensure the database connection is active
+    await ConnectDB();
+    //2. Extract the mongoId from the request Url
+    const mongoId = await request.nextUrl.searchParams.get('mongoId');
+//3.Update the todo status in MongoDB using the TodoModel
+    await TodoModel.findByIdAndUpdate(mongoId, {
+        $set: {
+            isCompleted:true
+        }
+       
+    });
+     return NextResponse.json({
+            msg: 'Todo marked as completed successfully'
+        })
+
 }

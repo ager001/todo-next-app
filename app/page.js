@@ -1,7 +1,8 @@
 /* This is the main page component for the Todo/Product list */
 "use client"// Enable client-side rendering
 import Todo from "@/components/Todo";
-import {useState} from 'react';
+import axios from "axios";
+import {useEffect, useState} from 'react';
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -14,6 +15,48 @@ export default function Home() {
         title:"",
         description:""
       });
+
+      const [todoData, setTodoData] = useState([]); //State to hold fetched todo items
+
+       const fetchTodos = async () =>{
+                const response = await axios('/api');//I have made a request to /api endpoint to fetch todos
+                setTodoData(response.data.todos);//Update the todoData state with fetched todos
+       }
+
+       {/* Function to delete a todo item by its mongoId */}
+       const deleteTodo = async(id)=>{
+        //api call to delete todo will go here
+          const response = await axios.delete('/api', {
+            params: {
+              mongoId: id
+            }
+          });
+          //success message
+          toast.success(response.data.msg);
+          //then refresh the todo list
+          await fetchTodos();//Refresh the todo list after deletion
+         
+       }
+
+      const completeTodo = async(id)=>{
+           //api call to mark todo as completed will go here
+
+           //
+           const response = await axios.put('/api', {},{
+            params: {
+              mongoId: id
+            }
+           });
+           toast.success(response.data.msg);
+           await fetchTodos();//Refresh the todo list after marking as completed
+      }
+
+
+
+       useEffect(()=>{
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            fetchTodos();
+       },[])
 
       {/*This function handles changes in the form inputs */}
       const onChangeHandler = (e) =>{
@@ -33,9 +76,15 @@ export default function Home() {
         e.preventDefault();
         try {
           //api call to save data to database will go here
-
-
-          toast.success('Todo added successfully');//show success message
+          const response = await axios.post('/api', formData);//Send Post request to /api with formData
+          toast.success(response.data.msg);//show success message from server
+          setFormData({
+             title:"",
+             description:""
+          });
+          await fetchTodos();//Refresh the todo list to include the new item
+           toast.success('Todo added successfully');//show success message
+         
         } catch (error) {
           toast.error('Error adding todo');//show error message
         }
@@ -84,9 +133,11 @@ export default function Home() {
 
           {/* Table Body */}
           <tbody>
-           <Todo/>
-            <Todo/>
-             <Todo/>
+            {/*I have made a request to /api endpoint to fetch todos and display them on the user interface */}
+          {todoData.map((item, index)=>{
+              return <Todo key={index} id={index} title={item.title} description={item.description} complete={item.isCompleted} mongoId={item._id}
+              deleteTodo={deleteTodo}  completeTodo={completeTodo}/>
+          })}
       
           </tbody>
         </table>
